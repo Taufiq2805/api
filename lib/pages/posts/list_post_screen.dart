@@ -8,45 +8,56 @@ class ListPostScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      color: Colors.amber,
-      child: FutureBuilder<List<PostModel>>(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Daftar Postingan'),
+        backgroundColor: Color.fromARGB(255, 1, 88, 250),
+      ),
+      body: FutureBuilder<List<PostModel>>(
         future: PostService.listPost(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
 
-          final dataPost = snapshot.data ?? [];
+          final posts = snapshot.data ?? [];
+
+          if (posts.isEmpty) {
+            return const Center(child: Text('Tidak ada data'));
+          }
+
           return ListView.builder(
-            scrollDirection: Axis.vertical,
-            itemCount: dataPost.length,
+            itemCount: posts.length,
             itemBuilder: (context, index) {
-              final data = dataPost[index];
+              final post = posts[index];
+
               return GestureDetector(
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => PostDetailScreen(
-                        id: data.id.toString(),
-                        title: data.title,
-                        body: data.body,
-                        userId: data.userId.toString(),
+                        id: post.id.toString(),
+                        title: post.title,
+                        body: post.body,
+                        userId: post.userId.toString(),
                       ),
                     ),
                   );
                 },
                 child: ListTile(
-                  leading: Text(dataPost[index].id.toString()),
-                  title: Text(data.title),
-                  subtitle: Text('User ID: ${data.userId}'),
+                  leading: CircleAvatar(
+                    child: Text(post.id.toString()),
+                    backgroundColor: Color.fromARGB(255, 55, 0, 255),
+                    foregroundColor: Colors.white,
+                  ),
+                  title: Text(post.title),
+                  subtitle: Text('User ID: ${post.userId}'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 ),
               );
             },

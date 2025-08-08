@@ -25,91 +25,119 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     if (_user == null) {
-      return const Center(child: CircularProgressIndicator());
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
     }
 
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Profil Saya"),
+        backgroundColor: Colors.blue,
+      ),
+      backgroundColor: Colors.grey.shade100,
+      body: SingleChildScrollView(
         child: Column(
           children: [
+            const SizedBox(height: 24),
+
             // Avatar
             CircleAvatar(
-              radius: 50,
-              backgroundColor: Colors.blue.shade100,
-              child: Icon(Icons.person, size: 60, color: Colors.blue),
+              radius: 60,
+              backgroundColor: Colors.blue.shade200,
+              child: const Icon(Icons.person, size: 70, color: Colors.white),
             ),
             const SizedBox(height: 16),
 
-            // Username
+            // Name & Email
             Text(
               _user!['name'],
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            Text(_user!['email'], style: TextStyle(color: Colors.grey[600])),
-            const SizedBox(height: 30),
+            const SizedBox(height: 4),
+            Text(
+              _user!['email'],
+              style: TextStyle(color: Colors.grey[700]),
+            ),
+
+            const SizedBox(height: 24),
 
             // Info Card
-            Card(
-              shape: RoundedRectangleBorder(
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
               ),
-              elevation: 4,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 16,
-                ),
-                child: Column(
-                  children: [
-                    _infoTile("Email", _user!['email']),
-                    const Divider(),
-                    _infoTile(
-                      "Tanggal Daftar",
-                      _user!['created_at'].substring(0, 10),
-                    ),
-                  ],
-                ),
+              child: Column(
+                children: [
+                  _infoItem(Icons.email, "Email", _user!['email']),
+                  const Divider(),
+                  _infoItem(Icons.calendar_today, "Tanggal Daftar",
+                      _user!['created_at'].substring(0, 10)),
+                ],
               ),
             ),
 
             const SizedBox(height: 40),
 
             // Logout Button
-            ElevatedButton.icon(
-              onPressed: () async {
-                await AuthService().logout();
-                Navigator.pushReplacementNamed(
-                  context,
-                  '/',
-                ); // arahkan ke login
-              },
-              icon: Icon(Icons.logout),
-              label: Text("Logout"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 12,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  await AuthService().logout();
+                  Navigator.pushReplacementNamed(context, '/');
+                },
+                icon: const Icon(Icons.logout),
+                label: const Text("Logout"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ),
+
+            const SizedBox(height: 40),
           ],
         ),
       ),
     );
   }
 
-  Widget _infoTile(String title, String value) {
+  Widget _infoItem(IconData icon, String label, String value) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: TextStyle(fontWeight: FontWeight.w500)),
-        Text(value),
+        Icon(icon, color: Colors.blue),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, color: Colors.grey)),
+              const SizedBox(height: 4),
+              Text(value,
+                  style: const TextStyle(fontSize: 16, color: Colors.black87)),
+            ],
+          ),
+        )
       ],
     );
   }

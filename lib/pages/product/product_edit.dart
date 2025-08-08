@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:xii_rpl_3/models/product_model.dart';
-import 'package:xii_rpl_3/pages/home_screen.dart';
+import 'package:xii_rpl_3/pages/menu_screen.dart';
 import 'package:xii_rpl_3/services/product_service.dart';
 
 class ProductEditScreen extends StatefulWidget {
@@ -14,6 +14,7 @@ class ProductEditScreen extends StatefulWidget {
 }
 
 class _ProductEditScreenState extends State<ProductEditScreen> {
+  final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _descController;
   late TextEditingController _priceController;
@@ -23,12 +24,11 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
 
   @override
   void initState() {
+    super.initState();
     _nameController = TextEditingController(text: widget.product.name);
     _descController = TextEditingController(text: widget.product.description);
-    _priceController = TextEditingController(
-      text: widget.product.price.toString(),
-    );
-    super.initState();
+    _priceController =
+        TextEditingController(text: widget.product.price.toString());
   }
 
   Future pickImage() async {
@@ -44,6 +44,8 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
   }
 
   void submit() async {
+    if (!_formKey.currentState!.validate()) return;
+
     final success = await ProductService.updateProduct(
       widget.product.id,
       _nameController.text,
@@ -52,49 +54,141 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
       _imageBytes,
       _imageName,
     );
+
     if (success) {
-      // Arahkan ke halaman ListProductPage
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Produk berhasil diperbarui')),
+      );
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => HomeScreen()),
+        MaterialPageRoute(builder: (_) => const MenuScreen()),
       );
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Gagal memperbarui produk')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal memperbarui produk')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Edit Product")),
-      body: Padding(
+      appBar: AppBar(
+        title: const Text("Edit Produk"),
+        backgroundColor: Colors.blueAccent,
+      ),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(labelText: "Name"),
+        child: Card(
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Form Edit Produk",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      hintText: "Nama Produk",
+                      prefixIcon: Icon(Icons.label_outline),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) =>
+                        value == null || value.isEmpty ? 'Wajib diisi' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _descController,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      hintText: "Deskripsi Produk",
+                      prefixIcon: Icon(Icons.description_outlined),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) =>
+                        value == null || value.isEmpty ? 'Wajib diisi' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _priceController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      hintText: "Harga",
+                      prefixIcon: Icon(Icons.attach_money_outlined),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      final price = double.tryParse(value ?? '');
+                      return price == null || price <= 0
+                          ? 'Masukkan harga valid'
+                          : null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    "Gambar Produk",
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 10),
+                  GestureDetector(
+                    onTap: pickImage,
+                    child: Container(
+                      height: 180,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.grey[100],
+                      ),
+                      child: _imageBytes != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child:
+                                  Image.memory(_imageBytes!, fit: BoxFit.cover),
+                            )
+                          : widget.product.image.isNotEmpty
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.network(
+                                    'http://127.0.0.1:8000/storage/${widget.product.image}',
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : const Center(
+                                  child: Icon(Icons.image, size: 60)),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  Center(
+                    child: ElevatedButton.icon(
+                      onPressed: submit,
+                      icon: const Icon(Icons.save_outlined),
+                      label: const Text("Simpan Perubahan"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueAccent,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              TextField(
-                controller: _descController,
-                decoration: InputDecoration(labelText: "Description"),
-              ),
-              TextField(
-                controller: _priceController,
-                decoration: InputDecoration(labelText: "Price"),
-                keyboardType: TextInputType.number,
-              ),
-              ElevatedButton(
-                onPressed: pickImage,
-                child: Text("Pick New Image"),
-              ),
-              if (_imageBytes != null) Image.memory(_imageBytes!, height: 100),
-              SizedBox(height: 20),
-              ElevatedButton(onPressed: submit, child: Text("Update")),
-            ],
+            ),
           ),
         ),
       ),

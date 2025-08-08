@@ -25,48 +25,57 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   Future<void> _refreshProducts() async {
-    setState(() {
-      _loadProducts();
-    });
+    setState(() => _loadProducts());
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Products')),
+      appBar: AppBar(
+        title: const Text('Produk'),
+        centerTitle: true,
+        backgroundColor: Colors.blueAccent,
+      ),
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
+        backgroundColor: Colors.blueAccent,
         onPressed: () async {
           await Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => ProductCreateScreen()),
           );
-          _refreshProducts(); // refresh setelah kembali
+          _refreshProducts();
         },
+        child: const Icon(Icons.add),
       ),
       body: FutureBuilder<List<Product>>(
         future: _futureProducts,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting)
-            return Center(child: CircularProgressIndicator());
-          if (!snapshot.hasData || snapshot.data!.isEmpty)
-            return Center(child: Text("No products"));
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          final products = snapshot.data ?? [];
+          if (products.isEmpty) {
+            return const Center(child: Text("Tidak ada produk."));
+          }
 
           return RefreshIndicator(
             onRefresh: _refreshProducts,
-            child: ListView.builder(
-              itemCount: snapshot.data!.length,
+            child: GridView.builder(
+              padding: const EdgeInsets.all(4),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 4,
+                mainAxisSpacing: 4,
+                childAspectRatio: 0.8, // Mengompakkan tinggi kartu produk
+              ),
+              itemCount: products.length,
               itemBuilder: (context, index) {
-                final product = snapshot.data![index];
-                return ListTile(
-                  leading: Image.network(
-                    'http://127.0.0.1:8000/storage/${product.image}',
-                    width: 50,
-                    errorBuilder: (_, __, ___) =>
-                        Icon(Icons.image_not_supported),
-                  ),
-                  title: Text(product.name),
-                  subtitle: Text('Rp ${product.price}'),
+                final product = products[index];
+                return GestureDetector(
                   onTap: () async {
                     await Navigator.push(
                       context,
@@ -75,8 +84,61 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             ProductDetailScreen(productId: product.id),
                       ),
                     );
-                    _refreshProducts(); // refresh setelah kembali dari detail/edit
+                    _refreshProducts();
                   },
+                  child: Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    elevation: 1.5,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Gambar kotak penuh
+                        AspectRatio(
+                          aspectRatio: 1,
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(6)),
+                            child: Image.network(
+                              'http://127.0.0.1:8000/storage/${product.image}',
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) =>
+                                  const Icon(Icons.broken_image, size: 28),
+                            ),
+                          ),
+                        ),
+                        // Nama produk & harga compact
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 2),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                product.name,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Rp ${product.price.toStringAsFixed(0)}',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.redAccent,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               },
             ),

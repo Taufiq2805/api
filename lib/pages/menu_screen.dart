@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:xii_rpl_3/pages/home_screen.dart';
 import 'package:xii_rpl_3/pages/posts/list_post_screen.dart';
 import 'package:xii_rpl_3/pages/product/product_list.dart';
+import 'package:xii_rpl_3/pages/produk/produk_list.dart';
 import 'package:xii_rpl_3/pages/profile_screen.dart';
 
 class MenuScreen extends StatefulWidget {
@@ -15,32 +16,51 @@ class _MenuScreenState extends State<MenuScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = [
-    HomeScreen(), // Ganti dari Center(text: ...) ke HomeScreen()
-    ListPostScreen(),
-    ProductListScreen(),
-    ProfileScreen(),
+    const HomeScreen(),
+    const ListPostScreen(),
+    const ProdukListPage(),
+    const ProductListScreen(),
+    const ProfileScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(title: Text('Dashboard')),
       body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
         selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,
-        backgroundColor: Color.fromARGB(255, 16, 72, 255),
+        backgroundColor: Colors.white,
         type: BottomNavigationBarType.fixed,
+        elevation: 10,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
-          BottomNavigationBarItem(icon: Icon(Icons.article), label: 'Posts'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
+            icon: Icon(Icons.home),
+            activeIcon: Icon(Icons.home, color: Colors.blue),
+            label: 'Beranda',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.article),
+            activeIcon: Icon(Icons.article, color: Colors.blue),
+            label: 'Posts',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.storefront),
+            activeIcon: Icon(Icons.storefront, color: Colors.blue),
             label: 'Produk',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            activeIcon: Icon(Icons.shopping_cart, color: Colors.blue),
+            label: 'Product',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            activeIcon: Icon(Icons.person, color: Colors.blue),
+            label: 'Profile',
+          ),
         ],
       ),
     );
